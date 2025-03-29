@@ -10,7 +10,7 @@ import MongoStore from "connect-mongo";
 import flash from "connect-flash";
 import passport from "passport";
 import LocalStrategy from "passport-local";
-import User from "./models/user.js";
+import { User } from "./models/user.js";
 import listingRouter from "./routes/listing.js";
 import reviewRouter from "./routes/review.js";
 import userRouter from "./routes/user.js";
