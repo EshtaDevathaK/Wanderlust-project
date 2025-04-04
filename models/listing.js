@@ -1,10 +1,9 @@
 // step : 4 : requiring Mongoose :
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
+import Review from "./review.js";
 
 // step : 5 : Declaring a variable [Schema] to store mongoose
 const Schema = mongoose.Schema;
-
-const Review = require("./review.js")
 
 //step : 5 : listingSchema --> Using this Schema We are going to create a model
 const listingSchema = new Schema({
@@ -54,4 +53,4 @@ listingSchema.post("findOneAndDelete", async (listing)=>{
 const Listing = mongoose.model("Listing", listingSchema);
 
 // step : 7 : We are going to export this model in app.js [model Exporting Process - refer :]
-module.exports = Listing;
+export default Listing; // ✅ Now it works with `import`

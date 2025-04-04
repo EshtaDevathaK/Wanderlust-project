@@ -1,29 +1,15 @@
-// step : 4 : requiring Mongoose :
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-// step : 5 : Declaring a variable [Schema] to store mongoose
-const Schema = mongoose.Schema;
-
-
-const reviewSchema = new Schema({
-    comment: String,
-    rating: {
-        type: Number,
-        min: 1,
-        max: 5,
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
+const reviewSchema = new mongoose.Schema({
+    body: String,
+    rating: Number,
     author: {
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-    }
+    },
 });
 
-module.exports = mongoose.model("Review", reviewSchema);
-// One to many relationShips
-// Listing 1 -> Will have many reviews One card Of Details(The Specific Place) Will hold Thousands of Reviews
+const Review = mongoose.model("Review", reviewSchema);
 
-
+// ✅ Export Review properly as an ES module
+export default Review;

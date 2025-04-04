@@ -1,30 +1,28 @@
-const express = require("express");
-const router = express.Router();
-const User = require("../models/user.js");
-const wrapAsync = require("../utils/wrapAsync.js");
-const passport = require("passport");
-const { savedRedirectUrl } = require("../middleware.js");
+import express from "express";
+import User from "../models/user.js";
+ 
+import passport from "passport";
+import { savedRedirectUrl } from "../middleware.js";
+import userController from "../controllers/users.js";
+import wrapAsync from "../utils/wrapAsync.js"; // ✅ Default Import (Correct)
 
-const userController = require("../controllers/users.js");
+const router = express.Router();
 
 router.route("/signup")
-.get(userController.renderSignupForm)
-.post(wrapAsync(userController.signup));
+    .get(userController.renderSignupForm)
+    .post(wrapAsync(userController.signup));
 
-
-
-
-router.route("/login", )
-.get(userController.renderLoginForm)
-// Authenticate the User -> duplicate username Or not 
-// ( passport does this Work[ And passport does this Work By being a Middleware ] )
-.post(savedRedirectUrl ,passport.authenticate( "local", 
-    { 
-        failureRedirect: '/login', 
-        failureFlash: true 
-    }) ,
-    userController.login);
+router.route("/login")
+    .get(userController.renderLoginForm)
+    .post(
+        savedRedirectUrl,
+        passport.authenticate("local", {
+            failureRedirect: '/login',
+            failureFlash: true
+        }),
+        userController.login
+    );
 
 router.get("/logout", userController.logout);
 
-module.exports = router;
+export default router;

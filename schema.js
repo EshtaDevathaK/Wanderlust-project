@@ -1,5 +1,5 @@
-const Joi = require('joi');
-module.exports.listingSchema = Joi.object({
+import Joi from "joi"; // Ensure you have installed Joi using `npm install joi`
+export const listingSchema = Joi.object({
     //ObJect : listings
     listing : Joi.object({
         title : Joi.string().required(),
@@ -12,8 +12,7 @@ module.exports.listingSchema = Joi.object({
 });9
 // When some req comes so inside we need something called listing Object
 
-
-module.exports.reviewSchema = Joi.object({
+export const reviewSchema = Joi.object({
     review: Joi.object({
     rating: Joi.number().required().min(1).max(5),
     comment: Joi.string().required()

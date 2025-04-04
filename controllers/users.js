@@ -1,48 +1,54 @@
-const User = require("../models/user.js");
+import User from "../models/user.js"; // Changed require() to import
 
+const userController = {
+    renderSignupForm: (req, res) => {
+        // Ensure currUser is null for signup page
+        res.locals.currUser = null;
+        res.render("users/signup.ejs");
+    },
 
-module.exports.renderSignupForm = (req, res)=>{
-    res.render("users/signup.ejs");
-}
-
-module.exports.signup = async(req, res)=>{
-    try {
-        let { username, email, password } = req.body;
-        const newUser = new User({ email, username });
-        let registeredUser = await User.register(newUser, password);
-        console.log(registeredUser);
-        req.login(registeredUser, (err)=>{
-            if(err){
-                return  next(err);
+    signup: async (req, res, next) => {
+        try {
+            let { username, email, password } = req.body;
+            const newUser = new User({ email, username });
+            const registeredUser = await User.register(newUser, password);
+            
+            req.login(registeredUser, (err) => {
+                if (err) {
+                    req.flash("error", "Error during login after signup");
+                    return res.redirect("/signup");
                 }
                 req.flash("success", "Welcome to Wanderlust! Your Account Has Been Created.");
                 res.redirect("/listings");
-        })
-    } catch (e) {
-        req.flash("error", e.message);
-        res.redirect("/signup");
-    }
-}
-
-
-module.exports.renderLoginForm = (req, res)=>{
-    res.render("users/login.ejs");
-}
-
-
-module.exports.login = async(req, res)=>{
-    req.flash("success", "Welcome To Wanderlust!! You are Logged In!!");
-    let redirectUrl = res.locals.redirectUrl || "/listings";
-    res.redirect(redirectUrl);
-}
-
-
-module.exports.logout = (req, res)=>{
-    req.logout((err) =>{
-        if(err){
-        return  next(err);
+            });
+        } catch (e) {
+            req.flash("error", e.message);
+            res.redirect("/signup");
         }
-        req.flash("success", "Your Account Has Been Logged Out!");
-        res.redirect("/listings");
-    });
-}
+    },
+
+    renderLoginForm: (req, res) => {
+        // Ensure currUser is null for login page
+        res.locals.currUser = null;
+        res.render("users/login.ejs");
+    },
+
+    login: async (req, res) => {
+        req.flash("success", "Welcome Back to Wanderlust!");
+        const redirectUrl = req.session.returnTo || "/listings";
+        delete req.session.returnTo;
+        res.redirect(redirectUrl);
+    },
+
+    logout: (req, res, next) => {
+        req.logout((err) => {
+            if (err) {
+                return next(err);
+            }
+            req.flash("success", "Goodbye!");
+            res.redirect("/listings");
+        });
+    }
+};
+
+export default userController;

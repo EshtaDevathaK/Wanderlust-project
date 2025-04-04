@@ -68,12 +68,12 @@ data-bs-target="#navbarNavAltMarkup">
 <a class="nav-link" href="/listings/new">Wanderlust Your home</a>
 
 <!-- User Not Logged In Show SignUp and Login -->
-<%  if(!currUser){ %>  
+<%  if(typeof currUser === 'undefined' || !currUser){ %>  
 <a class="nav-link"  href="/signup"><b>Sign Up</b></a>
       <a class="nav-link" href="/login"><b>Log In</b></a>
 <% }  %>  
 <!-- User Logged In Show Log Out -->
-<%  if(currUser){ %>  
+<%  if(currUser && typeof currUser !== 'undefined'){ %>  
 <a class="nav-link" href="/logout">Log Out</a>
   <% }  %> 
 </div>
