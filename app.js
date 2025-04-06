@@ -67,36 +67,45 @@ app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
 
+// Trust proxy for secure cookies in production
+if (process.env.NODE_ENV === "production") {
+    app.set('trust proxy', 1);
+    // Force HTTPS in production
+    app.use((req, res, next) => {
+        if (req.headers['x-forwarded-proto'] !== 'https') {
+            return res.redirect(['https://', req.get('Host'), req.url].join(''));
+        }
+        next();
+    });
+}
+
 // MongoDB Session Store with proper configuration
 const store = MongoStore.create({
     mongoUrl: dbUrl,
-    touchAfter: 24 * 3600, // 24 hours
+    touchAfter: 24 * 3600,
     crypto: {
         secret: process.env.SECRET
     },
-    collectionName: 'sessions',
-    autoRemove: 'interval',
-    autoRemoveInterval: 10, // Minutes
-    ttl: 24 * 60 * 60 // 1 day
+    collectionName: 'sessions'
 });
 
-// Add store error handling
 store.on('error', function(error) {
     console.error('Session Store Error:', error);
 });
 
-// Session Middleware with proper configuration
+// Session configuration with secure settings
 const sessionOptions = {
     store,
     name: 'sessionId',
     secret: process.env.SECRET,
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        expires: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 days
-        maxAge: 1000 * 60 * 60 * 24 * 7 // 7 days
+        secure: process.env.NODE_ENV === "production",
+        expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+        sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax'
     }
 };
 
@@ -139,6 +148,38 @@ app.get("/", (req, res) => {
     }
 });
 
+// Temporary cleanup route to remove sample listings
+app.get("/cleanup-all-listings", async (req, res) => {
+    try {
+        const Listing = mongoose.model('Listing');
+        
+        // First, get a count of all listings
+        const beforeCount = await Listing.countDocuments();
+        
+        // Delete all listings with the sample owner ID
+        const result = await Listing.deleteMany({
+            owner: new mongoose.Types.ObjectId("679f07b22073171c6afd36e2")
+        });
+        
+        // Get count after deletion
+        const afterCount = await Listing.countDocuments();
+        
+        res.json({
+            message: "Cleanup completed",
+            beforeCount,
+            afterCount,
+            deletedCount: beforeCount - afterCount,
+            result
+        });
+    } catch (err) {
+        console.error("Cleanup error:", err);
+        res.status(500).json({
+            error: err.message,
+            stack: err.stack
+        });
+    }
+});
+
 // Routes
 app.use("/", userRouter);
 app.use("/listings", listingRouter);
@@ -173,6 +214,12 @@ process.on("unhandledRejection", (err) => {
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
+    if (process.env.NODE_ENV === "production") {
+        console.log("Running in production mode");
+        console.log("Session secure:", sessionOptions.cookie.secure);
+        console.log("Session sameSite:", sessionOptions.cookie.sameSite);
+    }
 });
 
 
